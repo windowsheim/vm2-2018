@@ -1,0 +1,9 @@
+#!/bin/bash
+vagrant destroy -f
+rm -R /home/vagrant/.ssh/known_hosts
+rm -R .vagrant/
+cp Vagrantfile.orig Vagrantfile
+sed -i '4i _client=\"bram-\"' Vagrantfile
+vagrant up
+ssh-keyscan 172.16.0.10 172.16.0.11 172.16.0.12 172.16.0.13 >> /home/vagrant/.ssh/known_hosts
+ansible-playbook playbook.yml

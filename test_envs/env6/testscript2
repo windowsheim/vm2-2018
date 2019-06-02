@@ -1,0 +1,2 @@
+#!/bin/bash
+echo het werkt!!!! $2 $2

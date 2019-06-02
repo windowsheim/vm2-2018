@@ -1,0 +1,42 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+
+Vagrant.configure("2") do |config|
+  config.ssh.insert_key = false
+  config.ssh.private_key_path = ["/home/vagrant/.ssh/id_rsa1", "~/.vagrant.d/insecure_private_key"]
+
+  N = 2 
+  # N-webservers 
+  (1..N).each do |i|
+	config.vm.define "#{_client}" + "web#{i}" do |web|
+	web.vm.box = "ubuntu/xenial64"
+	web.vm.network "private_network", ip: "172.16.0.#{10+i}"
+	web.vm.hostname = "#{_client}" + "web#{i}"
+	web.vm.provision "file", source: "~/.ssh/id_rsa1.pub", destination: "~/.ssh/authorized_keys"
+	#web.vm.provision "shell", inline: "apt update -y && apt install python -y"
+	# ansible playground
+	# if i == N
+	# losse ansible file moeten we niet willen in deze opdracht zo...
+	#	web.vm.provision "ansible" do |ansible|
+	#		ansible.verbose = "vvvv"
+	#		ansible.playbook = "playbook.yml"
+	#	end
+  	# end
+	end
+  end
+  
+  # losse databasemachine
+  config.vm.define "#{_client}" + "db" do |db|
+    db.vm.box = "ubuntu/xenial64"
+    db.vm.network "private_network", ip: "172.16.0.10"
+    db.vm.hostname = "#{_client}" + "db"
+    db.vm.provision "file", source: "~/.ssh/id_rsa1.pub", destination: "~/.ssh/authorized_keys"
+  end
+
+  # ansible aanroepen
+  #config.vm.provision "ansible" do |ansible|
+#ansible.verbose = "v"
+#	ansible.playbook = "playbook.yml"
+#  end
+end

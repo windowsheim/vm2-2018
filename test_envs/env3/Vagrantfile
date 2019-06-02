@@ -1,0 +1,19 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.define "web" do |web|
+    web.vm.box = "ubuntu/xenial64"
+    web.vm.network "private_network", ip: "172.16.0.10"
+    web.vm.hostname = "web01"
+    web.vm.provision "file", source: "/home/vagrant/.ssh/id_rsa.pub", destination: "/home/vagrant/.ssh/id_rsa.pub"
+    web.vm.provision "shell", inline: "chmod 666 /home/vagrant/.ssh/authorized_keys"
+    web.vm.provision "shell", inline: "cat /home/vagrant/.ssh/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys"
+    web.vm.provision "shell", inline: "chmod 600 /home/vagrant/.ssh/authorized_keys"
+  end
+  config.vm.define "db" do |db|
+    db.vm.box = "ubuntu/xenial64"
+    db.vm.network "private_network", ip: "172.16.0.20"
+    db.vm.hostname = "db01"
+  end
+end

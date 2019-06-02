@@ -1,0 +1,53 @@
+---
+- hosts: db
+  become: yes
+  tasks:
+  - name: install mysql
+    apt:
+      name: "{{ packages }}"
+      update_cache: yes
+      state: latest
+    vars:
+      packages:
+       - python3-pip
+       - python3-mysqldb            
+       - libmysqlclient-dev
+       - mysql-server
+       - mysql-client
+
+  - name: start mySQL-server
+    service: name=mysql state=started
+
+  - name: remove test db
+    mysql_db: name=test state=absent
+
+  - name: create deploy user
+    mysql_user: user=vagrant host=localhost password=vagrant priv=*.*:ALL,GRANT
+
+  - name: create net-user priv
+    mysql_user: user=vagrant host=% password=vagrant priv=*.*:ALL,GRANT
+
+  - name: edit my.cnf
+    lineinfile: dest=/etc/mysql/my.cnf regexp="^bind-address" line="bind-address = 0.0.0.0"
+
+  - name: edit my.cnf-2
+    lineinfile: dest=/etc/mysql/my.cnf insertbefore="^bind-address" line="[mysqld]"
+
+  - name: add custom database
+    mysql_db: name=vm2db  state=present     
+
+  - name: remove anonymous users db
+    mysql_user: user=' ' host={{ item }} state=absent
+    with_items:
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+  - name: copy database template
+    copy: src=vm2db.sql dest=/tmp
+
+  - name: import db template
+    mysql_db: name=vm2db login_host=localhost login_user=vagrant login_password=vagrant state=import target=/tmp/vm2db.sql
+
+  - name: restart mysql
+    service: name=mysql state=restarted 
